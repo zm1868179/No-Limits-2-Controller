@@ -1,0 +1,9 @@
+﻿<Application x:Class="No_Limits_2_Controller.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:No_Limits_2_Controller"
+             StartupUri="Connection.xaml">
+    <Application.Resources>
+         
+    </Application.Resources>
+</Application>
