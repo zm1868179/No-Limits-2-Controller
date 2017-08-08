@@ -14,6 +14,6 @@
     </Window.Background>
     <Grid>
         <Button x:Name="btn_SendIdle" Content="Send Idle Message" HorizontalAlignment="Left" Margin="61,56,0,0" VerticalAlignment="Top" Width="121" Click="btn_SendIdle_Click"/>
-        <Button x:Name="btn_ToggleGates" Content="Toggle Gates" HorizontalAlignment="Left" Margin="61,81,0,0" VerticalAlignment="Top" Width="121"/>
+        <Button x:Name="btn_ToggleGates" Content="Toggle Gates" HorizontalAlignment="Left" Margin="61,81,0,0" VerticalAlignment="Top" Width="121" Click="btn_ToggleGates_Click"/>
     </Grid>
 </Window>
