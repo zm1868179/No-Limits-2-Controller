@@ -16,6 +16,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.IO;
+using System.Timers;
+using System.Threading;
 
 namespace No_Limits_2_Controller
 {
@@ -275,43 +277,30 @@ namespace No_Limits_2_Controller
          * The request ID can be used to identify matching replys from the server to requests from the client.
          */
         private static int s_nRequestId;
-#endregion
+        #endregion
+
+        #region StationStatus
+        public static Boolean manualDispatch = false;
+        public static Boolean estop = false;
+        public static Boolean canDispatch = false;
+        public static Boolean cancloseGates = false;
+        public static Boolean canOpenGates = false;
+        public static Boolean cancloseHarness = false;
+        public static Boolean canOpenHarness = false;
+        public static Boolean canRaisePlatform = false;
+        public static Boolean canLowerPlatform = false;
+        public static Boolean canLockFlyerCar = false;
+        public static Boolean canUnlockFlyercar = false;
+
+        #endregion
 
         public TcpClient NL2Client;
         public MainWindow(TcpClient Client)
         {
             InitializeComponent();
             NL2Client = Client;
-        }
-        
-        struct Nl2TelemetryMessage
-        {
-            public byte magicStart; //magic start (uchar8)
-            public ushort typeId; //this is the ushort16
-            public uint requestId; //this is the uint32
-            public ushort dataSize; //this is the second ushort
-            public byte magicEnd; //magic end (uchar8)
-        }
-
-        private byte[] CreateMessage(ushort Typeid, uint Requestid, ushort datasize)
-        {
-
-            Nl2TelemetryMessage message = new Nl2TelemetryMessage();
-
-
-            message.magicStart = (byte)'N';
-            message.typeId = Typeid;
-	        message.requestId = Requestid;
-	        message.dataSize = datasize;
-            message.magicEnd = (byte)'L' ;
-
-
-
-
-
-	        Byte[] ConvertedStruct = null;
-
-            return ConvertedStruct;
+            //Get the Status of the Station and set the Variables
+            GetStationStatus();
 
         }
 
@@ -506,7 +495,7 @@ namespace No_Limits_2_Controller
             }
             return null;
         }
-
+        //Decode Recieved Messages
         private static void decodeMessage(byte[] bytes)
         {
             int len = bytes.Length;
@@ -562,7 +551,7 @@ namespace No_Limits_2_Controller
                                 int currentSeat = decodeInt32(bytes, c_nExtraSizeOffset + 28);
                                 //float speed = decodeFloat(bytes, c_nExtraSizeOffset + 32);
 
-                                //Quaternion quat = new Quaternion();
+                                Quaternion quat = new Quaternion();
 
                                 //float posx = decodeFloat(bytes, c_nExtraSizeOffset + 36);
                                 //float posy = decodeFloat(bytes, c_nExtraSizeOffset + 40);
@@ -649,6 +638,19 @@ namespace No_Limits_2_Controller
                                 Boolean bCanLockFlyerCar = (nState & (1 << 9)) != 0;
                                 Boolean bCanUnlockFlyerCar = (nState & (1 << 10)) != 0;
 
+                                estop = bEStop;
+                                manualDispatch = bManualDispatch;
+                                canDispatch = bCanDispatch;
+                                canOpenGates = bCanOpenGates;
+                                cancloseGates = bCanCloseGates;
+                                cancloseHarness = bCanCloseHarness;
+                                canOpenHarness = bCanOpenHarness;
+                                canLowerPlatform = bCanLowerPlatform;
+                                canRaisePlatform = bCanRaisePlatform;
+                                canUnlockFlyercar = bCanUnlockFlyerCar;
+                                canLockFlyerCar = bCanLockFlyerCar;
+
+
                                 Console.WriteLine("Station state: ");
                                 Console.WriteLine("    E-Stop: " + bEStop);
                                 Console.WriteLine("    Manual Dispatch: " + bManualDispatch);
@@ -670,7 +672,111 @@ namespace No_Limits_2_Controller
                 }
             }
         }
+        //Read the data from the stream
+        private static byte[] readMessage(BinaryReader input)
+  {
+            int prefix = input.Read();
+            if (prefix != (int)'N')
+            {
+                if (prefix != -1)
+                {
+                    throw new Exception("Invalid message received");
+                }
+                else
+                {
+                    throw new Exception("No data from server");
+                }
+            }
 
+            int b1 = input.Read();
+            if (b1 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+            int b2 = input.Read();
+            if (b2 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+            int b3 = input.Read();
+            if (b3 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+            int b4 = input.Read();
+            if (b4 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+
+            int b5 = input.Read();
+            if (b5 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+
+            int b6 = input.Read();
+            if (b6 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+
+            int b7 = input.Read();
+            if (b7 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+
+            int b8 = input.Read();
+            if (b8 == -1)
+            {
+                throw new Exception("No data from server");
+            }
+
+            int extraSize = decodeUShort16((byte)b7, (byte)b8);
+
+            byte[] bytes = new byte[10 + extraSize];
+
+            bytes[0] = (byte)prefix;
+            bytes[1] = (byte)b1;
+            bytes[2] = (byte)b2;
+            bytes[3] = (byte)b3;
+            bytes[4] = (byte)b4;
+            bytes[5] = (byte)b5;
+            bytes[6] = (byte)b6;
+            bytes[7] = (byte)b7;
+            bytes[8] = (byte)b8;
+
+            for (int i = 0; i < extraSize; ++i)
+            {
+                int b = input.Read();
+                if (b == -1)
+                {
+                    throw new Exception("No data from server");
+                }
+                bytes[9 + i] = (byte)b;
+            }
+
+            int postfix = input.Read();
+            if (postfix != (int)'L')
+            {
+                if (postfix != -1)
+                {
+                    throw new Exception("Invalid message received");
+                }
+                else
+                {
+                    throw new Exception("No data from server");
+                }
+            }
+
+            bytes[9 + extraSize] = (byte)postfix;
+
+            return bytes;
+        }
+
+
+        //Everything below here is used for converting datatypes into byte arrayys
         private double RadianToDegree(double angle)
         {
             return angle * (180.0 / Math.PI);
@@ -721,7 +827,7 @@ namespace No_Limits_2_Controller
             return bytes[offset] != 0;
         }
 
-
+        //Everything below here is the actually functions of the program
 
         //Send the Idle Message
         private void btn_SendIdle_Click(object sender, RoutedEventArgs e)
@@ -732,7 +838,12 @@ namespace No_Limits_2_Controller
             NetworkStream stream = NL2Client.GetStream();
 
             stream.Write(data, 0, data.Length);
-            Int32 bytes = stream.Read(data, 0, data.Length);
+
+            //make a buffer to store the response 
+            var reader = new BinaryReader(stream);
+            data = readMessage(reader);
+
+            //Int32 bytes = stream.Read(data, 0, data.Length);
             //Decode the recieved message from the server
             decodeMessage(data);
 
@@ -741,20 +852,439 @@ namespace No_Limits_2_Controller
         //Toggle Que Gates
         private void btn_ToggleGates_Click(object sender, RoutedEventArgs e)
         {
-            //Get the Stream to send and recieve data
-            //Byte[] data = CreateMessage(3, 1, 0);
-            Byte[] data = decodeCommand("sgo");
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (canOpenGates == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("sgo");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                canOpenGates = false;
+                cancloseGates = true;
+
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(5000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+
+
+
+            }
+            else if (canOpenGates ==false && cancloseGates == true)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("sgc");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                canOpenGates = true;
+                cancloseGates = false;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(5000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+
+        }
+
+        //Toggle the Harness
+        private void btn_ToggleHarness_Click(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (canOpenHarness == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("sho");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                canOpenHarness = false;
+                cancloseHarness = true;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(3000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+
+
+            }
+            else if (canOpenHarness == false && cancloseHarness == true)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("shc");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                canOpenHarness = true;
+                cancloseHarness = false;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(3000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+        }
+
+        //Toggle Platform
+        private void btn_ToggleFloor_Click(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (canRaisePlatform == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("spr");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                canRaisePlatform = false;
+                canLowerPlatform = true;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(10000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+
+
+
+            }
+            else if (canLowerPlatform == true && canRaisePlatform == false)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("spl");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                canRaisePlatform = true;
+                canLowerPlatform = false;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(10000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+        }
+
+        //toggle Flyer position
+        private void btn_ToggleFlyer_Click(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (canLockFlyerCar == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("sfl");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                canLockFlyerCar = false;
+                canUnlockFlyercar = true;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(10000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+
+
+            }
+            else if (canLockFlyerCar == false && canUnlockFlyercar == true)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("sfu");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                canLockFlyerCar = true;
+                canUnlockFlyercar = false;
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(10000);
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+        }
+
+        //toggle E-Stop
+        private void btn_Estop_Click(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (estop == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("seoff");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                estop = false;
+                GetStationStatus();
+
+
+            }
+            else if (estop == false)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("seon");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                estop = true;
+                GetStationStatus();
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+        }
+
+        //Dispatch Train
+        private void btn_Dispatch_ClickAsync(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (canDispatch == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("d");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //we dispatched wait for the next train to enter the station before enableing buttons again
+                canDispatch = false;
+                canOpenGates = false;
+                canRaisePlatform = false;
+                canUnlockFlyercar = false;
+                canOpenHarness = false;
+                btn_Dispatch.IsEnabled = false;
+                btn_ToggleFloor.IsEnabled = false;
+                btn_ToggleFlyer.IsEnabled = false;
+                btn_ToggleGates.IsEnabled = false;
+                btn_ToggleHarness.IsEnabled = false;
+
+                Task.Factory.StartNew(() =>
+                {
+                    Thread.Sleep(15000);
+
+                    GetStationStatus();
+                    // Do things here.
+                    // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                });
+
+            }
+            else
+            {
+                GetStationStatus();
+            }
+        }
+
+        //toggle manual mode
+        private void btn_ToggleManual_Click(object sender, RoutedEventArgs e)
+        {
+            NetworkStream stream = NL2Client.GetStream();
+            //Open the gates on if the can be opened
+            if (manualDispatch == true)
+            {
+                //send the command to close the gates
+                Byte[] data = decodeCommand("setsmmoff");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                //toggle the gate switch
+                manualDispatch = false;
+
+
+            }
+            else if (manualDispatch == false)
+            {
+                //Send the command to close the gates
+                Byte[] data = decodeCommand("setsmmon");
+                stream.Write(data, 0, data.Length);
+                //make a buffer to store the response 
+                var reader = new BinaryReader(stream);
+                data = readMessage(reader);
+                decodeMessage(data);
+
+                manualDispatch = true;
+            }
+
+            else
+            {
+                //if somehow the status is messed up get the status of the station again
+                GetStationStatus();
+            }
+        }
+
+        //Get the Station Status
+        private void GetStationStatus()
+        {
+            //Get the Status
+            Byte[] data = decodeCommand("gss");
 
             NetworkStream stream = NL2Client.GetStream();
 
             stream.Write(data, 0, data.Length);
-            //make a buffer to store the response
-            //data = new Byte[10];
-            string responsedata = string.Empty;
-            //Cant read for some reason 
-            Int32 bytes = stream.Read(data, 0, data.Length);
+            //make a buffer to store the response 
+            var reader = new BinaryReader(stream);
+            data = readMessage(reader);
+
             //Decode the recieved message from the server
             decodeMessage(data);
+
+            //if we can dispatch enable the button otherwise disable it.
+            if (canDispatch == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_Dispatch.IsEnabled = true;
+                }));
+
+            }
+            else if (canDispatch == false)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_Dispatch.IsEnabled = false;
+                }));
+            }
+
+            if (cancloseGates || canOpenGates == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_ToggleGates.IsEnabled = true;
+                }));
+            }
+
+            if (canOpenHarness || cancloseHarness == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_ToggleHarness.IsEnabled = true;
+                }));
+            }
+
+            if (canRaisePlatform || canLowerPlatform == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_ToggleFloor.IsEnabled = true;
+                }));
+            }
+
+            if (canUnlockFlyercar || canLockFlyerCar == true)
+            {
+                this.Dispatcher.Invoke((Action)(() =>
+                {//this refer to form in WPF application 
+                    btn_ToggleFlyer.IsEnabled = true;
+                }));
+            }
+
+            this.Dispatcher.Invoke((Action)(() =>
+            {//this refer to form in WPF application 
+                if (btn_ToggleFlyer.IsEnabled == false && btn_ToggleFloor.IsEnabled == false && btn_ToggleGates.IsEnabled == false && btn_ToggleHarness.IsEnabled == false && btn_Dispatch.IsEnabled == false && manualDispatch == true)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        Thread.Sleep(2000);
+
+                        GetStationStatus();
+                        // Do things here.
+                        // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                    });
+                }
+            }));
+            //if all the command buttons are disabled (Due to dispatch) wait 2 seconds and check again
+           
+
         }
+
     }
 }

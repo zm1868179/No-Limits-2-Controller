@@ -13,7 +13,13 @@
         </LinearGradientBrush>
     </Window.Background>
     <Grid>
-        <Button x:Name="btn_SendIdle" Content="Send Idle Message" HorizontalAlignment="Left" Margin="61,56,0,0" VerticalAlignment="Top" Width="121" Click="btn_SendIdle_Click"/>
-        <Button x:Name="btn_ToggleGates" Content="Toggle Gates" HorizontalAlignment="Left" Margin="61,81,0,0" VerticalAlignment="Top" Width="121" Click="btn_ToggleGates_Click"/>
+        <Button x:Name="btn_SendIdle" Content="Send Idle Message" HorizontalAlignment="Left" Margin="47,33,0,0" VerticalAlignment="Top" Width="121" Click="btn_SendIdle_Click" Visibility="Hidden"/>
+        <Button x:Name="btn_ToggleGates" Content="Toggle Gates" HorizontalAlignment="Left" Margin="61,81,0,0" VerticalAlignment="Top" Width="121" Click="btn_ToggleGates_Click" Background="#FFCE9B17"/>
+        <Button x:Name="btn_ToggleHarness" Content="Toggle Harness" HorizontalAlignment="Left" Margin="198,81,0,0" VerticalAlignment="Top" Width="100" Background="#FFCE9B17" Click="btn_ToggleHarness_Click"/>
+        <Button x:Name="btn_ToggleFloor" Content="Toggle Floor" HorizontalAlignment="Left" Margin="61,105,0,0" VerticalAlignment="Top" Width="121" Background="#FFCE9B17" Click="btn_ToggleFloor_Click"/>
+        <Button x:Name="btn_ToggleFlyer" Content="Toggle Flyer" HorizontalAlignment="Left" Margin="198,105,0,0" VerticalAlignment="Top" Width="100" Background="#FFCE9B17" Click="btn_ToggleFlyer_Click"/>
+        <Button x:Name="btn_Dispatch" Content="Dispatch" HorizontalAlignment="Left" Margin="61,129,0,0" VerticalAlignment="Top" Width="121" Background="#FF0BB100" Click="btn_Dispatch_ClickAsync" IsEnabled="False"/>
+        <Button x:Name="btn_Estop" Content="E-Stop" HorizontalAlignment="Left" Margin="397,28,0,0" VerticalAlignment="Top" Width="100" BorderBrush="Red" Background="Red" Click="btn_Estop_Click"/>
+        <Button x:Name="btn_ToggleManual" Content="Toggle Manual" HorizontalAlignment="Left" Margin="198,129,0,0" VerticalAlignment="Top" Width="100" Background="#FFCE9B17" Click="btn_ToggleManual_Click"/>
     </Grid>
 </Window>
