@@ -310,6 +310,8 @@ namespace No_Limits_2_Controller
                 btn_ToggleGates.IsEnabled = false;
                 btn_ToggleHarness.IsEnabled = false;
             }
+
+
         }
 
         //Create Simple Message
@@ -1253,6 +1255,25 @@ namespace No_Limits_2_Controller
                 }));
             }
 
+            //Hide Buttons depending on the coaster type
+            if (rb_sit.IsChecked == true)
+            {
+                btn_ToggleFloor.Visibility = Visibility.Hidden;
+                btn_ToggleFlyer.Visibility = Visibility.Hidden;
+            }
+            
+            else if (rb_Flr.IsChecked == true)
+            {
+                btn_ToggleFloor.Visibility = Visibility.Visible;
+                btn_ToggleFlyer.Visibility = Visibility.Hidden;
+            }
+
+            else if (rb_flyer.IsChecked == true)
+            {
+                btn_ToggleFloor.Visibility = Visibility.Hidden;
+                btn_ToggleFlyer.Visibility = Visibility.Visible;
+            }
+
             if (cancloseGates || canOpenGates == true)
             {
                 this.Dispatcher.Invoke((Action)(() =>
@@ -1328,5 +1349,9 @@ namespace No_Limits_2_Controller
 
         }
 
+        private void CheckChanged(object sender, RoutedEventArgs e)
+        {
+            GetStationStatus();
+        }
     }
 }

@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:No_Limits_2_Controller"
         mc:Ignorable="d"
-        Title="No Limits 2 Controller" Height="350" Width="525">
+        Title="No Limits 2 Controller" Height="457.2" Width="741">
     <Window.Background>
         <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
             <GradientStop Color="Black" Offset="0"/>
@@ -19,10 +19,14 @@
         <Button x:Name="btn_ToggleFloor" Content="Toggle Floor" HorizontalAlignment="Left" Margin="61,105,0,0" VerticalAlignment="Top" Width="121" Background="#FFCE9B17" Click="btn_ToggleFloor_Click"/>
         <Button x:Name="btn_ToggleFlyer" Content="Toggle Flyer" HorizontalAlignment="Left" Margin="198,105,0,0" VerticalAlignment="Top" Width="100" Background="#FFCE9B17" Click="btn_ToggleFlyer_Click"/>
         <Button x:Name="btn_Dispatch" Content="Dispatch" HorizontalAlignment="Left" Margin="61,129,0,0" VerticalAlignment="Top" Width="121" Background="#FF0BB100" Click="btn_Dispatch_ClickAsync" IsEnabled="False"/>
-        <Button x:Name="btn_Estop" Content="E-Stop" HorizontalAlignment="Left" Margin="397,28,0,0" VerticalAlignment="Top" Width="100" BorderBrush="Red" Background="Red" Click="btn_Estop_Click"/>
+        <Button x:Name="btn_Estop" Content="E-Stop" HorizontalAlignment="Left" Margin="624,24,0,0" VerticalAlignment="Top" BorderBrush="Red" Background="Red" Click="btn_Estop_Click" Width="93" Height="20"/>
         <Button x:Name="btn_ToggleManual" Content="Toggle Manual" HorizontalAlignment="Left" Margin="198,129,0,0" VerticalAlignment="Top" Width="100" Background="#FFCE9B17" Click="btn_ToggleManual_Click"/>
-        <RadioButton x:Name="rb_sit" Content="Sit Down" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" GroupName="Coaster_Type" Foreground="White"/>
-        <RadioButton x:Name="rb_Flr" Content="Floorless" HorizontalAlignment="Left" Margin="10,28,0,0" VerticalAlignment="Top" GroupName="Coaster_Type" Foreground="White"/>
-        <RadioButton x:Name="rb_flyer" Content="Flyer" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" Foreground="White" GroupName="Coaster_Type"/>
+        <RadioButton x:Name="rb_sit" Content="Sit Down" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" GroupName="Coaster_Type" Foreground="White" Checked="CheckChanged" />
+        <RadioButton x:Name="rb_Flr" Content="Floorless" HorizontalAlignment="Left" Margin="102,10,0,0" VerticalAlignment="Top" GroupName="Coaster_Type" Foreground="White" Checked="CheckChanged"/>
+        <RadioButton x:Name="rb_flyer" Content="Flyer" HorizontalAlignment="Left" Margin="187,10,0,0" VerticalAlignment="Top" Foreground="White" GroupName="Coaster_Type" Checked="CheckChanged"/>
+        <Button x:Name="btn_RideStart" Content="Ride Start" HorizontalAlignment="Left" Margin="503,105,0,0" VerticalAlignment="Top" Width="93" Background="#FF0C7D00"/>
+        <Button x:Name="btn_RideStop" Content="Ride Stop" HorizontalAlignment="Left" Margin="624,105,0,0" VerticalAlignment="Top" Width="93" Background="Red"/>
+        <Button x:Name="btn_ESRReset" Content="ESR Reset" HorizontalAlignment="Left" Margin="624,66,0,0" VerticalAlignment="Top" Width="93" Background="#FFCE9B17"/>
+        <Button x:Name="btn_MainPower" Content="ON/OFF" HorizontalAlignment="Left" Margin="10,51,0,0" VerticalAlignment="Top" Width="93"/>
     </Grid>
 </Window>
