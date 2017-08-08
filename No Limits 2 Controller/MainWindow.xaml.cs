@@ -301,7 +301,15 @@ namespace No_Limits_2_Controller
             NL2Client = Client;
             //Get the Status of the Station and set the Variables
             GetStationStatus();
-
+            //Disabled the buttons if manual mode is not on
+            if (manualDispatch == false)
+            {
+                btn_Dispatch.IsEnabled = false;
+                btn_ToggleFloor.IsEnabled = false;
+                btn_ToggleFlyer.IsEnabled = false;
+                btn_ToggleGates.IsEnabled = false;
+                btn_ToggleHarness.IsEnabled = false;
+            }
         }
 
         //Create Simple Message
@@ -1179,6 +1187,11 @@ namespace No_Limits_2_Controller
 
                 //toggle the gate switch
                 manualDispatch = false;
+                btn_Dispatch.IsEnabled = false;
+                btn_ToggleFloor.IsEnabled = false;
+                btn_ToggleFlyer.IsEnabled = false;
+                btn_ToggleGates.IsEnabled = false;
+                btn_ToggleHarness.IsEnabled = false;
 
 
             }
@@ -1193,6 +1206,11 @@ namespace No_Limits_2_Controller
                 decodeMessage(data);
 
                 manualDispatch = true;
+                btn_Dispatch.IsEnabled = true;
+                btn_ToggleFloor.IsEnabled = true;
+                btn_ToggleFlyer.IsEnabled = true;
+                btn_ToggleGates.IsEnabled = true;
+                btn_ToggleHarness.IsEnabled = true;
             }
 
             else
@@ -1269,11 +1287,35 @@ namespace No_Limits_2_Controller
 
             this.Dispatcher.Invoke((Action)(() =>
             {//this refer to form in WPF application 
-                if (btn_ToggleFlyer.IsEnabled == false && btn_ToggleFloor.IsEnabled == false && btn_ToggleGates.IsEnabled == false && btn_ToggleHarness.IsEnabled == false && btn_Dispatch.IsEnabled == false && manualDispatch == true)
+                if (btn_ToggleFloor.IsEnabled == false && btn_ToggleGates.IsEnabled == false && btn_ToggleHarness.IsEnabled == false && btn_Dispatch.IsEnabled == false && manualDispatch == true && rb_Flr.IsChecked == true)
                 {
                     Task.Factory.StartNew(() =>
                     {
-                        Thread.Sleep(2000);
+                        Thread.Sleep(4000);
+
+                        GetStationStatus();
+                        // Do things here.
+                        // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                    });
+                }
+
+                if (btn_ToggleFlyer.IsEnabled == false && btn_ToggleGates.IsEnabled == false && btn_ToggleHarness.IsEnabled == false && btn_Dispatch.IsEnabled == false && manualDispatch == true && rb_flyer.IsChecked == true)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        Thread.Sleep(4000);
+
+                        GetStationStatus();
+                        // Do things here.
+                        // NOTE: You may need to invoke this to your main thread depending on what you're doing
+                    });
+                }
+
+                if (btn_ToggleGates.IsEnabled == false && btn_ToggleHarness.IsEnabled == false && btn_Dispatch.IsEnabled == false && manualDispatch == true && rb_sit.IsChecked == true)
+                {
+                    Task.Factory.StartNew(() =>
+                    {
+                        Thread.Sleep(4000);
 
                         GetStationStatus();
                         // Do things here.
